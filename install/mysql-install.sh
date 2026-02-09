@@ -28,24 +28,13 @@ if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
 fi
 
 msg_info "Installing MySQL"
-curl -fsSL https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 | gpg --dearmor -o /usr/share/keyrings/mysql.gpg
+# Use Oracle MySQL APT repo; GPG key expired Oct 2025 so use [trusted=yes] until Oracle updates the key
 if [ "$(lsb_release -si)" = "Debian" ]; then
-  cat <<EOF >/etc/apt/sources.list.d/mysql.sources
-Types: deb
-URIs: http://repo.mysql.com/apt/debian
-Suites: $(lsb_release -sc)
-Components: ${RELEASE_REPO}
-Signed-By: /usr/share/keyrings/mysql.gpg
-EOF
+  echo "deb [trusted=yes] http://repo.mysql.com/apt/debian $(lsb_release -sc) ${RELEASE_REPO}" >/etc/apt/sources.list.d/mysql.list
 else
-  cat <<EOF >/etc/apt/sources.list.d/mysql.sources
-Types: deb
-URIs: http://repo.mysql.com/apt/ubuntu
-Suites: $(lsb_release -sc)
-Components: ${RELEASE_REPO}
-Signed-By: /usr/share/keyrings/mysql.gpg
-EOF
+  echo "deb [trusted=yes] http://repo.mysql.com/apt/ubuntu $(lsb_release -sc) ${RELEASE_REPO}" >/etc/apt/sources.list.d/mysql.list
 fi
+rm -f /etc/apt/sources.list.d/mysql.sources
 $STD apt update
 export DEBIAN_FRONTEND=noninteractive
 $STD apt install -y \
